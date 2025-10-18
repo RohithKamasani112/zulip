@@ -28,13 +28,21 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en  
 ENV LC_ALL=en_US.UTF-8
 
+# Create zulip user and give passwordless sudo
+RUN useradd -ms /bin/bash zulip && echo "zulip ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
 WORKDIR /zulip
 
-# Copy code
 COPY . /zulip
 
-# Upgrade pip and setuptools
+# Make zulip the owner of the directory
+RUN chown -R zulip:zulip /zulip
+
+# Upgrade pip and setuptools as root first
 RUN pip install --upgrade pip setuptools
+
+# Switch to zulip user for provisioning and running
+USER zulip
 
 # Provision Zulip (this script installs all dependencies)
 RUN ./tools/provision
